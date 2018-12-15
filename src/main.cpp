@@ -1,22 +1,41 @@
 #include <Arduino.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
+#include <Pushbutton.h>
+#include <Thread.h>
+#include <ThreadController.h>
 
 #define OLED_ADDR 0x3c
+#define BTN_PIN PC14
+#define LED_ONBOARD PC13
+#define LED0 PB4
+#define LED1 PB3
+#define LED2 PA15
+#define LED3 PA10
 
 // SDA - PB7, SCL - PB6
-
 Adafruit_SSD1306 display(-1);
 
-void setup() {
-    // put your setup code here, to run once:
-    pinMode(PC13, OUTPUT);
+// button
+Pushbutton button(BTN_PIN);
 
-    // Test opto
-    pinMode(PB4, OUTPUT);
-    pinMode(PB3, OUTPUT);
-    pinMode(PA15, OUTPUT);
-    pinMode(PA10, OUTPUT);
+// Threads ThreadController
+ThreadController controll = ThreadController();
+Thread LedBlinker = Thread();
+
+void led_blink(){
+  static bool ledstatus = false;
+  ledstatus = !ledstatus;
+
+  digitalWrite(LED1, ledstatus);
+  Serial.println("Blink...");
+}
+
+void setup() {
+    pinMode(LED_ONBOARD, OUTPUT);
+    pinMode(LED0, OUTPUT);
+    pinMode(LED1, OUTPUT);
+
     // Debug port (using native USB)
     Serial.begin(9600);
 
@@ -29,22 +48,25 @@ void setup() {
     display.setCursor(27, 30);
     display.print("Hello, world!");
     display.display();
+
+    //Test Serial
+    Serial.println("Hello world");
+
+    LedBlinker.onRun(led_blink);
+    LedBlinker.setInterval(1000);
+
+    controll.add(&LedBlinker);
 }
 
 void loop() {
-//  myOLED.clrScr();                                   // Чистим экран.
-//  myOLED.print( "ABCDEFGHIJKLM", LEFT, 24);
-  Serial.println("Hello world");
-  digitalWrite(PC13, HIGH);
-  digitalWrite(PB4, HIGH);
-  digitalWrite(PB3, HIGH);
-  digitalWrite(PA15, HIGH);
-  digitalWrite(PA10, HIGH);
-  delay(1000);
-  digitalWrite(PC13, LOW);
-  digitalWrite(PB4, LOW);
-  digitalWrite(PB3, LOW);
-  digitalWrite(PA15, LOW);
-  digitalWrite(PA10, LOW);
-  delay(1000);
+  controll.run();
+  if (button.isPressed()){
+    digitalWrite(LED0, HIGH);
+    Serial.println("Pressed");
+    delay(50);
+  }
+  else{
+    digitalWrite(LED0, LOW);
+    delay(50);
+  }
 }
