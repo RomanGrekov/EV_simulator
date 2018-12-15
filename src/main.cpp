@@ -22,13 +22,32 @@ Pushbutton button(BTN_PIN);
 // Threads ThreadController
 ThreadController controll = ThreadController();
 Thread LedBlinker = Thread();
+Thread BtnHandler = Thread();
 
-void led_blink(){
+void led_blink_callback(){
   static bool ledstatus = false;
   ledstatus = !ledstatus;
 
   digitalWrite(LED1, ledstatus);
   Serial.println("Blink...");
+}
+
+void btn_callback(){
+  static bool btn_state = false;
+  static bool btn_state_old = false;
+
+  btn_state = button.isPressed();
+  if (btn_state != btn_state_old){
+    btn_state_old = btn_state;
+    if (btn_state == true){
+      digitalWrite(LED0, HIGH);
+      Serial.println("Pressed");
+    }
+    else{
+      digitalWrite(LED0, LOW);
+      Serial.println("Unpressed");
+    }
+  }
 }
 
 void setup() {
@@ -52,21 +71,15 @@ void setup() {
     //Test Serial
     Serial.println("Hello world");
 
-    LedBlinker.onRun(led_blink);
+    LedBlinker.onRun(led_blink_callback);
     LedBlinker.setInterval(1000);
+    BtnHandler.onRun(btn_callback);
+    BtnHandler.setInterval(10);
 
     controll.add(&LedBlinker);
+    controll.add(&BtnHandler);
 }
 
 void loop() {
   controll.run();
-  if (button.isPressed()){
-    digitalWrite(LED0, HIGH);
-    Serial.println("Pressed");
-    delay(50);
-  }
-  else{
-    digitalWrite(LED0, LOW);
-    delay(50);
-  }
 }
