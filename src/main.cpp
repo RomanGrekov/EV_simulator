@@ -1,26 +1,63 @@
-#include <Arduino.h>
 #include <Adafruit_SSD1306.h>
 #include <Adafruit_GFX.h>
 #include <Pushbutton.h>
 #include <Thread.h>
 #include <ThreadController.h>
-//#include <timer.h>
+
+#define V_BAT 3.3  // Power supply voltage
+#define PROX_NC_V 2.9 // proximity pin voltage when not connected
+#define PROX_C_PRESSED 1.8 // proximity pin voltage when not connected, button
+                           // pressed
+#define PROX_C 0.9 // proximity pin voltage when connected, unpressed
+
+#define NC_V 3.0 // = 12V
+#define Con_V 2.28 // = 9V
+#define Charge_V 1.5 // = 6V
+#define Charge_vent_V 0.7 // = 3V
+#define Error_V 0 // = 0V
 
 #define OLED_ADDR 0x3c
 #define BTN_PIN PC14
 #define LED_ONBOARD PC13
-#define LED0 PB4
-#define LED1 PB3
-#define LED2 PA15
+#define REL0 PB4
+#define REL1 PB3
+#define REL2 PA15
 #define LED3 PA10
-#define ADC_PIN PA7
+#define ADC_PILOT_PIN PA0
+#define ADC_PROX_PIN PA1
+// PA6 - Timer changel 1
 
 // Global vars
-float Voltage;
-float T;
-float T_h;
-float T_l;
-float F;
+float PilotVoltage;
+float ProxVoltage;
+int T;
+int T_h;
+int T_l;
+int F;
+int Duty;
+int ChargeCurrent;
+enum State {Not_connected,
+            Connected,
+            Charge,
+            Charge_vent_req,
+            Error,
+            Unknown_error};
+enum State cur_state = Not_connected;
+
+const char state_names[6][15] = {"Not_connected",
+                                 "Connected",
+                                 "Charge",
+                                 "Charge_vent",
+                                 "Error",
+                                 "Unknown_error"};
+
+enum ProxState {NC,
+                Connected_btn_pressed,
+                Connected_btn_unpressed};
+enum ProxState prox_state = NC;
+const char prox_state_names[3][20] = {"NC",    // Not connected
+                                      "CBP",   // Connected button pressed
+                                      "CBUP"}; // Connected button unpressed
 
 // SDA - PB7, SCL - PB6
 Adafruit_SSD1306 display(-1);
@@ -34,14 +71,12 @@ Thread LedBlinker = Thread();
 Thread BtnHandler = Thread();
 Thread ADCHandler = Thread();
 Thread DispHandler = Thread();
+Thread StateMHandler = Thread();
 
-// Create timer
-//auto timer = timer_create_default();
-
+// Alive led blink
 void led_blink_callback(){
   static bool ledstatus = false;
   ledstatus = !ledstatus;
-
   digitalWrite(LED_ONBOARD, ledstatus);
 }
 
@@ -63,36 +98,71 @@ void btn_callback(){
 
 void adc_read_callback(){
   int val = 0;
-  val = analogRead(ADC_PIN);
-  Voltage = (float(val) / 4096) * 3.3;
+  val = analogRead(ADC_PILOT_PIN);
+  PilotVoltage = (float(val) / 4096) * V_BAT;
+  val = analogRead(ADC_PROX_PIN);
+  ProxVoltage = (float(val) / 4096) * V_BAT;
 
 }
 
 void display_show_callback(){
+  int height=15;
+  int line=2;
   display.clearDisplay();
   display.setTextColor(WHITE);
-  display.setCursor(0, 2);
-  display.print("V: ");
-  display.print(Voltage);
-  display.setCursor(0, 17);
+  display.setCursor(0, line);
+  display.print(prox_state_names[prox_state]);
+  display.print(" ");
+  display.print(state_names[cur_state]);
+  line = line + height;
+  display.setCursor(0, line);
+  display.print("I: ");
+  display.print(ChargeCurrent);
+  display.print("A");
+  line = line + height;
+  display.setCursor(0, line);
+  display.print("Vpr: ");
+  display.print(ProxVoltage);
+  display.print(" Vpil: ");
+  display.print(PilotVoltage);
+  line = line + height;
+  display.setCursor(0, line);
   display.print("F: ");
   display.print(F);
-  display.setCursor(0, 30);
-  display.print("T_h: ");
-  display.print(T_h);
-  display.setCursor(0, 45);
-  display.print("T_l: ");
-  display.print(T_l);
+  display.print(" D: ");
+  display.print(Duty);
   display.display();
 
-  Serial.print("V ");
-  Serial.print(Voltage);
+  Serial.print("Vproxy ");
+  Serial.print(ProxVoltage);
+  Serial.print("Vpilot ");
+  Serial.print(PilotVoltage);
   Serial.print(" F: ");
   Serial.print(F);
   Serial.print(" T_l: ");
   Serial.print(T_l);
   Serial.print(" T_h: ");
   Serial.println(T_h);
+}
+
+void state_machine_callback(){
+  if (ProxVoltage >= (PROX_NC_V - 0.5)) prox_state = NC;
+  if (ProxVoltage >= (PROX_C_PRESSED - 0.5) &&
+      ProxVoltage < (PROX_NC_V - 0.5)) prox_state = Connected_btn_pressed;
+  if (ProxVoltage >= (PROX_C - 0.5) &&
+      ProxVoltage < (PROX_C_PRESSED - 0.5)) prox_state = Connected_btn_unpressed;
+
+  // Process state on pilot pin
+  if (prox_state == Connected_btn_unpressed){
+    if (PilotVoltage >= (NC_V - 0.5)) cur_state = Not_connected;
+    if (PilotVoltage >= (Con_V - 0.5) &&
+        PilotVoltage < (NC_V - 0.5)) cur_state = Connected;
+    if (PilotVoltage >= (Charge_V - 0.5) &&
+        PilotVoltage < (Con_V - 0.5)) cur_state = Charge;
+    if (PilotVoltage >= (Charge_vent_V - 0.5) &&
+        PilotVoltage < (Charge_V - 0.5)) cur_state = Charge_vent_req;
+    if (PilotVoltage < (Charge_vent_V - 0.5)) cur_state = Error;
+  }
 }
 
 
@@ -102,7 +172,8 @@ void setup() {
     pinMode(LED1, OUTPUT);
     pinMode(LED3, OUTPUT);
 
-    pinMode(ADC_PIN, INPUT_ANALOG);
+    pinMode(ADC_PILOT_PIN, INPUT_ANALOG);
+    pinMode(ADC_PROX_PIN, INPUT_ANALOG);
 
     // Debug port (using native USB)
     Serial.begin(9600);
@@ -127,11 +198,14 @@ void setup() {
     ADCHandler.setInterval(10);
     DispHandler.onRun(display_show_callback);
     DispHandler.setInterval(100);
+    StateMHandler.onRun(state_machine_callback);
+    StateMHandler.setInterval(100);
 
     controll.add(&LedBlinker);
     controll.add(&BtnHandler);
     controll.add(&ADCHandler);
     controll.add(&DispHandler);
+    controll.add(&StateMHandler);
 
     Timer3.pause();
     Timer3.setPrescaleFactor(72);
@@ -145,12 +219,29 @@ void setup() {
 
 void loop() {
   if (Timer3.getInputCaptureFlag(TIMER_CH2)){
-    T_l = Timer3.getCompare(TIMER_CH2);
+    T_h = Timer3.getCompare(TIMER_CH2);
   }
   if (Timer3.getInputCaptureFlag(TIMER_CH1)){
     T = Timer3.getCompare(TIMER_CH1);
     F = 1000000/T;
-    T_h = T - T_l;
+    T_l = T - T_h;
+    Duty = T_h/(T/100);
+    ChargeCurrent = Duty*0.6;
   }
   controll.run();
+
+  switch (prox_state){
+    case NC:
+      cur_state = Not_connected;
+    break;
+    case Connected_btn_pressed:
+      cur_state = Not_connected;
+    break;
+    case Connected_btn_unpressed:
+    break;
+  }
+  switch(cur_state){
+    case Not_connected:
+    break;
+  }
 }
