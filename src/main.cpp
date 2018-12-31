@@ -22,7 +22,7 @@
 #define REL0 PB4
 #define REL1 PB3
 #define REL2 PA15
-#define LED3 PA10
+#define LED0 PA10
 #define ADC_PILOT_PIN PA0
 #define ADC_PROX_PIN PA1
 // PA6 - Timer changel 1
@@ -80,6 +80,7 @@ void led_blink_callback(){
   digitalWrite(LED_ONBOARD, ledstatus);
 }
 
+// Simulate ventelate required state
 void btn_callback(){
   static bool btn_state = false;
   static bool btn_state_old = false;
@@ -88,10 +89,10 @@ void btn_callback(){
   if (btn_state != btn_state_old){
     btn_state_old = btn_state;
     if (btn_state == true){
-      digitalWrite(LED3, HIGH);
+      digitalWrite(REL2, HIGH); // Connect resistor 330 Omh
     }
     else{
-      digitalWrite(LED3, LOW);
+      digitalWrite(REL2, LOW); // Connect resistor 330 Omh
     }
   }
 }
@@ -156,11 +157,12 @@ void state_machine_callback(){
   if (prox_state == Connected_btn_unpressed){
     if (PilotVoltage >= (NC_V - 0.5)) cur_state = Not_connected;
     if (PilotVoltage >= (Con_V - 0.5) &&
-        PilotVoltage < (NC_V - 0.5)) cur_state = Connected;
+        PilotVoltage < (NC_V - 0.5) && (990 < F < 1010)) cur_state = Connected;
     if (PilotVoltage >= (Charge_V - 0.5) &&
-        PilotVoltage < (Con_V - 0.5)) cur_state = Charge;
+        PilotVoltage < (Con_V - 0.5) && (990 < F < 1010)) cur_state = Charge;
     if (PilotVoltage >= (Charge_vent_V - 0.5) &&
-        PilotVoltage < (Charge_V - 0.5)) cur_state = Charge_vent_req;
+        PilotVoltage < (Charge_V - 0.5) &&
+        (990 < F < 1010)) cur_state = Charge_vent_req;
     if (PilotVoltage < (Charge_vent_V - 0.5)) cur_state = Error;
   }
 }
@@ -168,9 +170,9 @@ void state_machine_callback(){
 
 void setup() {
     pinMode(LED_ONBOARD, OUTPUT);
-    pinMode(LED0, OUTPUT);
-    pinMode(LED1, OUTPUT);
-    pinMode(LED3, OUTPUT);
+    pinMode(REL0, OUTPUT);
+    pinMode(REL1, OUTPUT);
+    pinMode(REL2, OUTPUT);
 
     pinMode(ADC_PILOT_PIN, INPUT_ANALOG);
     pinMode(ADC_PROX_PIN, INPUT_ANALOG);
@@ -233,15 +235,30 @@ void loop() {
   switch (prox_state){
     case NC:
       cur_state = Not_connected;
+      digitalWrite(REL1, LOW); // Disconnect resistor 1300 Omh
+      digitalWrite(REL0, LOW); // Disconnect resistor 2740 Omh
     break;
     case Connected_btn_pressed:
       cur_state = Not_connected;
+      digitalWrite(REL1, LOW); // Disconnect resistor 1300 Omh
+      digitalWrite(REL0, LOW); // Disconnect resistor 2740 Omh
     break;
     case Connected_btn_unpressed:
-    break;
-  }
-  switch(cur_state){
-    case Not_connected:
+      // Start charging
+      switch(cur_state){
+        case Not_connected:
+          digitalWrite(REL0, HIGH); // Connect resistor 2740 Omh
+        break;
+        case Connected:
+          digitalWrite(REL1, HIGH); // Connect resistor 1300 Omh
+        break;
+        case Charge:
+        break;
+        case Error:
+          digitalWrite(REL1, LOW); // Disconnect resistor 1300 Omh
+          digitalWrite(REL0, LOW); // Disconnect resistor 2740 Omh
+        break;
+      }
     break;
   }
 }

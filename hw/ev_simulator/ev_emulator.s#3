@@ -4332,14 +4332,14 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <part name="R7" library="antduino" deviceset="SPARKFUN_RESISTOR" device="AXIAL-0.3" value="4.7K"/>
 <part name="GND5" library="antduino" deviceset="SPARKFUN_GND" device=""/>
 <part name="3" library="AZ850" deviceset="AZ850" device=""/>
-<part name="VENTELATE" library="antduino" deviceset="SPARKFUN-ELECTROMECHANICAL_SWITCH-MOMENTARY-2" device="PTH" value="switch"/>
+<part name="S1" library="antduino" deviceset="SPARKFUN-ELECTROMECHANICAL_SWITCH-MOMENTARY-2" device="PTH"/>
 <part name="GND6" library="antduino" deviceset="SPARKFUN_GND" device=""/>
 <part name="U$3" library="diy-modules" deviceset="DISPLAY-OLED-128X64-I2C" device=""/>
 <part name="P+5" library="antduino" deviceset="SPARKFUN_3.3V" device=""/>
 <part name="GND7" library="antduino" deviceset="SPARKFUN_GND" device=""/>
 <part name="LED1" library="antduino" deviceset="SPARKFUN_LED" device="-3MM-NO_SILK"/>
 <part name="R8" library="antduino" deviceset="SPARKFUN_RESISTOR" device="AXIAL-0.3" value="500"/>
-<part name="CUSTOM" library="antduino" deviceset="SPARKFUN-ELECTROMECHANICAL_SWITCH-MOMENTARY-2" device="PTH" value="switch"/>
+<part name="S2" library="antduino" deviceset="SPARKFUN-ELECTROMECHANICAL_SWITCH-MOMENTARY-2" device="PTH"/>
 <part name="Q1" library="transistor-npn" library_urn="urn:adsk.eagle:library:398" deviceset="BF459*" device="" package3d_urn="urn:adsk.eagle:package:28978/1" value="D882"/>
 <part name="R11" library="antduino" deviceset="SPARKFUN_RESISTOR" device="AXIAL-0.3" value="100K"/>
 <part name="C1" library="capacitor-wima" library_urn="urn:adsk.eagle:library:116" deviceset="C" device="2,5-3" package3d_urn="urn:adsk.eagle:package:5436/1" value="10nF"/>
@@ -4425,9 +4425,9 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <attribute name="NAME" x="-104.14" y="40.64" size="1.778" layer="95" rot="MR270"/>
 <attribute name="VALUE" x="-106.68" y="40.64" size="1.778" layer="96" rot="MR270"/>
 </instance>
-<instance part="VENTELATE" gate="G$1" x="93.98" y="27.94" smashed="yes">
-<attribute name="NAME" x="91.44" y="30.48" size="1.778" layer="95"/>
-<attribute name="VALUE" x="91.44" y="25.4" size="1.778" layer="96"/>
+<instance part="S1" gate="G$1" x="91.44" y="27.94" smashed="yes">
+<attribute name="NAME" x="88.9" y="30.48" size="1.778" layer="95"/>
+<attribute name="VALUE" x="88.9" y="25.4" size="1.778" layer="96"/>
 </instance>
 <instance part="GND6" gate="1" x="111.76" y="12.7" smashed="yes">
 <attribute name="VALUE" x="109.22" y="10.16" size="1.778" layer="96"/>
@@ -4450,7 +4450,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <attribute name="NAME" x="-80.01" y="23.9014" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="-80.01" y="28.702" size="1.778" layer="96" rot="R180"/>
 </instance>
-<instance part="CUSTOM" gate="G$1" x="93.98" y="17.78" smashed="yes">
+<instance part="S2" gate="G$1" x="93.98" y="17.78" smashed="yes">
 <attribute name="NAME" x="91.44" y="20.32" size="1.778" layer="95"/>
 <attribute name="VALUE" x="91.44" y="15.24" size="1.778" layer="96"/>
 </instance>
@@ -4627,11 +4627,11 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <junction x="134.62" y="-33.02"/>
 </segment>
 <segment>
-<pinref part="VENTELATE" gate="G$1" pin="2"/>
+<pinref part="S1" gate="G$1" pin="2"/>
 <pinref part="GND6" gate="1" pin="GND"/>
-<wire x1="99.06" y1="27.94" x2="111.76" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="96.52" y1="27.94" x2="111.76" y2="27.94" width="0.1524" layer="91"/>
 <wire x1="111.76" y1="27.94" x2="111.76" y2="17.78" width="0.1524" layer="91"/>
-<pinref part="CUSTOM" gate="G$1" pin="2"/>
+<pinref part="S2" gate="G$1" pin="2"/>
 <wire x1="111.76" y1="17.78" x2="111.76" y2="15.24" width="0.1524" layer="91"/>
 <wire x1="99.06" y1="17.78" x2="111.76" y2="17.78" width="0.1524" layer="91"/>
 <junction x="111.76" y="17.78"/>
@@ -4757,9 +4757,9 @@ You are welcome to use this library for commercial purposes. For attribution, we
 <net name="N$13" class="0">
 <segment>
 <pinref part="U$1" gate="G$1" pin="PC14"/>
-<pinref part="VENTELATE" gate="G$1" pin="1"/>
-<wire x1="76.2" y1="27.94" x2="88.9" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="91.44" y1="27.94" x2="88.9" y2="27.94" width="0.1524" layer="91"/>
+<pinref part="S1" gate="G$1" pin="1"/>
+<wire x1="76.2" y1="27.94" x2="86.36" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="91.44" y1="27.94" x2="86.36" y2="27.94" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$14" class="0">
@@ -4780,7 +4780,7 @@ You are welcome to use this library for commercial purposes. For attribution, we
 </net>
 <net name="N$17" class="0">
 <segment>
-<pinref part="CUSTOM" gate="G$1" pin="1"/>
+<pinref part="S2" gate="G$1" pin="1"/>
 <wire x1="88.9" y1="17.78" x2="88.9" y2="25.4" width="0.1524" layer="91"/>
 <pinref part="U$1" gate="G$1" pin="PC13"/>
 <wire x1="88.9" y1="25.4" x2="76.2" y2="25.4" width="0.1524" layer="91"/>
