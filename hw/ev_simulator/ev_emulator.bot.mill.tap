@@ -1,0 +1,42 @@
+(.../romang/EAGLE/ulps/pcb-gcode.ulp)
+(Copyright 2005 - 2012 by John Johnson)
+(See readme.txt for licensing terms.)
+(This file generated from the board:)
+(.../hw/ev_simulator/ev_emulator.brd)
+(Current profile is .../EAGLE/ulps/profiles/generic.pp  )
+(This file generated 03.01.19 09:28)
+(Settings from pcb-machine.h)
+(  Tool Size)
+(2.0000 )
+(Z Axis Settings)
+(  High     Up        Down     Drill)
+(12.7000 	2.5400 	-0.1000 	-2.0000 )
+(spindle on time = 3.0000)
+(milling depth = -2.0000)
+(text depth = -0.1270)
+(tool change at 12.7000 15.2400 25.4000 )
+(feed rate xy = F200.00 )
+(feed rate z  = F254.00 )
+(Settings from pcb-defaults.h)
+(isolate min = 0.0000)
+(isolate max = 0.2000)
+(isolate step = 0.2000)
+(Generated top outlines, top drill, bottom outlines, bottom drill, )
+(Unit of measure: mm)
+(Metric Mode)
+G21
+(Absolute Coordinates)
+G90
+G00 X0.0000 Y0.0000 
+M03
+G04 P3.000000
+G00 Z2.5400 
+G00 X-0.1270 Y76.9620 
+G01 Z-2.0000 F254.00 
+G01 X-96.3930 Y76.9620 F200.00 
+G01 X-96.3930 Y-0.1270 
+G01 X-0.1270 Y-0.1270 
+G01 X-0.1270 Y76.9620 
+G00 Z12.7000 
+M05
+M02
